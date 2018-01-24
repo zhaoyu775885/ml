@@ -27,8 +27,6 @@ def eval_mpe(X, Y, beta_hat):
     samp_size, feat_size = X.shape
     Y_hat = np.matmul(X, beta_hat)
     error = Y_hat - Y
-#    print(error)
-#    print(np.var(error, ddof=1))
     return 1/samp_size * np.matmul(error.T, error)[0, 0]
     
     

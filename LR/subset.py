@@ -117,7 +117,7 @@ def backward_stepwise(X, Y, feat_sel_num):
     
 
 if __name__ == '__main__':
-    """
+ 
     upper = 5
     label = np.zeros(upper, dtype=int)
     perm = np.zeros(upper, dtype=int)
@@ -125,6 +125,7 @@ if __name__ == '__main__':
     K = 3
     comb = np.zeros(K, dtype=int)
     combination(0, comb, label)
+    
     """
     ps = pd.read_table('./prostate.txt')
     
@@ -200,3 +201,4 @@ if __name__ == '__main__':
     print(backward_set)
     print(backward_beta_hat)    
     '''
+       """

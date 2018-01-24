@@ -1,16 +1,33 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Nov  6 14:04:31 2017
-
-@author: zhaoyu
-"""
 
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import KFold
-from sklearn.model_selection import ShuffleSplit
-import ols
+
+def scale(X):
+    samp_size, feat_size = X.shape
+    for jt in range(feat_size):
+        mean = np.mean(X[:, jt])
+        std_dev = np.sqrt(np.var(X[:, jt], ddof=1))
+        X[:, jt] = (X[:, jt]-mean) / std_dev
+    return X
+
+def ols(X, Y):
+    gram = np.matmul(X.T, X)
+    beta = np.matmul(gram.I, np.matmul(X.T, Y))
+    return beta
+
+def std_dev(X, var):
+    samp_size, feat_size = X.shape
+    beta_var_mat = var*np.matmul(X.T, X).I
+    return np.mat(np.sqrt(np.diag(beta_var_mat))).T
+    
+    
+def eval_mpe(X, Y, beta_hat):
+    samp_size, feat_size = X.shape
+    Y_hat = np.matmul(X, beta_hat)
+    error = Y_hat - Y
+    return 1/samp_size * np.matmul(error.T, error)[0, 0]
 
 def ridge(X, Y, alpha):
     samp_size, feat_size = X.shape
@@ -24,7 +41,7 @@ if __name__ == '__main__':
     full_data = np.mat(ps.iloc[:, 1:-1])
     full_prdt = full_data[:, :-1]
     full_resp = full_data[:, -1]
-    full_prdt = ols.scale(full_prdt)
+    full_prdt = scale(full_prdt)
     
     samp_size, feat_size = full_prdt.shape
     print('{0} features, {1} samples'.format(feat_size, samp_size))    
@@ -44,10 +61,12 @@ if __name__ == '__main__':
     testX = full_prdt[test_label, :]
     testY = full_resp[test_label, 0]
 
+#    randomly rearange the rows
     rows_random = np.arange(train_size)
     np.random.shuffle(rows_random)
     trainX = trainX[rows_random.tolist(), :]
     trainY = trainY[rows_random.tolist(), :]
+                    
 
     print('Training samples: {0}\nTest samples: {1}'.format(train_size, test_size))
     
@@ -57,11 +76,10 @@ if __name__ == '__main__':
     trainX = np.concatenate((np.mat(np.ones([train_size, 1])), trainX), axis=1)
 #    Add the intercept to the training data
     
-#    beta_hat = ols.ols(trainX, trainY)
+#    beta_hat = ols(trainX, trainY)
 #    print(beta_hat)
 
     kf = KFold(n_splits=10)
-#    k_mpe = []
     trainY_hat = np.mat(np.zeros(train_size)).reshape(train_size, 1)
     
     for t_idx, v_idx in kf.split(trainX):
@@ -81,7 +99,7 @@ if __name__ == '__main__':
     std_err = np.sqrt(np.var(error))
     print(mpe, std_err)
     
-#        mpe = ols.eval_mpe(v_X, v_Y, beta_hat)
+#        mpe = eval_mpe(v_X, v_Y, beta_hat)
 #        k_mpe.append(mpe)
 
 #    print(k_mpe)

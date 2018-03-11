@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+sudo #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import pandas as pd
@@ -59,7 +59,8 @@ if __name__ == '__main__':
     print('Training samples: {0}\nTest samples: {1}'.format(train_size, test_size))
     
     cor_mat = np.corrcoef(trainX.T)
-#    print(cor_mat)
+    print(trainX.shape)
+    print(cor_mat)
     
     trainX = np.concatenate((np.mat(np.ones([train_size, 1])), trainX), axis=1)
 #    Add the intercept to the training data

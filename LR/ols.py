@@ -1,4 +1,4 @@
-sudo #!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import pandas as pd
@@ -13,21 +13,29 @@ def scale(X):
     return X
 
 def ols(X, Y):
-    gram = np.matmul(X.T, X)
-    beta = np.matmul(gram.I, np.matmul(X.T, Y))
+    gram = X.T*X
+    beta = gram.I * X.T * Y
     return beta
 
 def std_dev(X, var):
     samp_size, feat_size = X.shape
-    beta_var_mat = var*np.matmul(X.T, X).I
+    beta_var_mat = var*(X.T*X).I
     return np.mat(np.sqrt(np.diag(beta_var_mat))).T
     
     
 def eval_mpe(X, Y, beta_hat):
     samp_size, feat_size = X.shape
-    Y_hat = np.matmul(X, beta_hat)
+    Y_hat = X * beta_hat
     error = Y_hat - Y
-    return 1/samp_size * np.matmul(error.T, error)[0, 0]
+    error_2 = np.array(error)**2
+#    print('tst: ', np.mean(error_2), np.std(error_2, ddof=1))    
+    
+#    pf = pd.DataFrame({'1':np.array(Y_hat)[:, 0].tolist(),
+#                       '2':np.array(Y)[:, 0].tolist(),
+#                       '3':np.array(error)[:, 0].tolist()})
+#    print(pf)
+#    print("here is the mean(err)", np.sqrt(1/(samp_size-1)*(tmp-np.mean(tmp)).T*(tmp-np.mean(tmp))))
+    return 1/samp_size * (error.T*error)[0, 0]
     
     
 if __name__ == '__main__':
@@ -35,8 +43,8 @@ if __name__ == '__main__':
     
     full_data = np.mat(ps.iloc[:, 1:-1])
     full_prdt = full_data[:, :-1]
-    full_resp = full_data[:, -1]
     full_prdt = scale(full_prdt)
+    full_resp = full_data[:, -1]
 
     samp_size, feat_size = full_prdt.shape
     print('{0} features, {1} samples'.format(feat_size, samp_size))    
@@ -68,9 +76,9 @@ if __name__ == '__main__':
     beta_hat = ols(trainX, trainY)
 #    print(beta_hat)
 
-    trainY_hat = np.matmul(trainX, beta_hat)
+    trainY_hat = trainX*beta_hat
     error = trainY - trainY_hat
-    est_var = 1/(train_size-feat_size-1) * np.matmul(error.T, error)[0, 0]
+    est_var = 1/(train_size-feat_size-1) * (error.T*error)[0, 0]
 #    print(np.sqrt(est_var))
 
     beta_std_dev = std_dev(trainX, est_var)
@@ -92,7 +100,8 @@ if __name__ == '__main__':
     df = df[index].round({index[1]:2, index[2]:2, index[3]:2})
     print(df)
     
-    test_mpe = eval_mpe(np.concatenate((np.mat(np.ones([test_size, 1])), testX), axis=1), testY, beta_hat)
+    test_mpe = eval_mpe(trainX, trainY, beta_hat)
+#    test_mpe = eval_mpe(np.concatenate((np.mat(np.ones([test_size, 1])), testX), axis=1), testY, beta_hat)
     print('Test Error : {0:0.3f}'.format(test_mpe))
     
     print('Still have not got the meaning of "Std Error" on ESL Page 63.')

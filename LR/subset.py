@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 import copy
 import ols
+from sklearn.model_selection import KFold
 
 def permutation(idx, perm, label):
     """
@@ -40,9 +41,9 @@ def combination(idx, comb, label):
                 combination(idx+1, comb, label)
                 label[i] = 0
                 
-def best_subset(idx, comb, label):
+def best_subset(trainX, trainY, idx, comb, label):
     global min_mpe, best_set
-    global trainX, trainY
+#    global trainX, trainY
     global testX, testY
     global train_size, test_size
     global beta, test_error
@@ -65,7 +66,7 @@ def best_subset(idx, comb, label):
             if label[i] == 0:
                 comb[idx] = i
                 label[i] = 1
-                best_subset(idx+1, comb, label)
+                best_subset(trainX, trainY, idx+1, comb, label)
                 label[i] = 0
 
 def forward_stepwise(X, Y, feat_sel_num):
@@ -111,22 +112,17 @@ def backward_stepwise(X, Y, feat_sel_num):
 
     return idx_set
         
-        
-#def forward_stage():
-    
-    
-
 if __name__ == '__main__':
  
-    upper = 5
-    label = np.zeros(upper, dtype=int)
-    perm = np.zeros(upper, dtype=int)
-    permutation(0, perm, label)
-    K = 3
-    comb = np.zeros(K, dtype=int)
-    combination(0, comb, label)
+#    upper = 5
+#    label = np.zeros(upper, dtype=int)
+#    perm = np.zeros(upper, dtype=int)
+#    permutation(0, perm, label)
+#    K = 3
+#    comb = np.zeros(K, dtype=int)
+#    combination(0, comb, label)
     
-    """
+
     ps = pd.read_table('./prostate.txt')
     
     full_data = np.mat(ps.iloc[:, 1:-2])
@@ -154,27 +150,30 @@ if __name__ == '__main__':
     beta = np.mat(np.zeros(3)).I
     test_error = 0
     
-    best_subset(0, comb, label)
+    best_subset(trainX, trainY, 0, comb, label)
     
     kf = KFold(n_splits=10)
     k_mpe = []
-    
-    for t_idx, v_idx in kf.split(trainX):
-#        print(t_idx, v_idx)
-        t_X = trainX[t_idx, :]
-        t_Y = trainY[t_idx, :]
-        v_X = trainX[v_idx, :]
-        v_Y = trainY[v_idx, :]
-        beta_hat = ols.ols(t_X, t_Y)
-        best_subset()
-        mpe = ols.eval_mpe(v_X, v_Y, beta_hat)
-        k_mpe.append(mpe)
+#    
+#    for t_idx, v_idx in kf.split(trainX):
+##        print(t_idx, v_idx)
+#        t_X = trainX[t_idx, :]
+#        t_Y = trainY[t_idx, :]
+#        v_X = trainX[v_idx, :]
+#        v_Y = trainY[v_idx, :]
+##        beta_hat = ols.ols(t_X, t_Y)
+##        mpe = ols.eval_mpe(v_X, v_Y, beta_hat)
+#        best_subset(0, comb, label)
+#        mpe = ols.eval_mpe(v_X, v_Y, beta_hat)
+#        k_mpe.append(mpe)
+#
+#    print(np.var(np.array(k_mpe)))    
+#    
+#    print(min_mpe)
 
-    print(np.var(np.array(k_mpe)))    
-    
-    print(min_mpe)
     print(ols.eval_mpe(np.concatenate((np.mat(np.ones(test_size)).T, testX[:, best_set]), axis=1), testY, beta))
-    print(best_set)
+    
+    print('The selected predictors are: ', best_set)
     print(beta)
 
 
@@ -201,4 +200,3 @@ if __name__ == '__main__':
     print(backward_set)
     print(backward_beta_hat)    
     '''
-       """
